@@ -1,0 +1,10 @@
+- name: Ensure that python-apt bindings are present
+  shell: "apt-get install -y python-apt-common"
+
+- name: Install pip Ansible module dependencies
+  apt:
+    name: 
+      - python-virtualenv
+      - python-setuptools
+      - python-pip
+    state: present

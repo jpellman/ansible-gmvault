@@ -1,0 +1,31 @@
+# TODO Add logic for setting up device password.
+# TODO Add logic for dealing with scenarios where a boolean flag is set to false
+# rather than undefined.
+# TODO Add logic for finding path of gmvault / don't assume path for gmvault.
+
+- name: Define gmvault backup crontabs
+  cron:
+    name: "{{ item.name }}"
+    minute: "{% if item.minute is defined %}{{ item.minute }}{% else %}{{ gmvault_cron_default_minute }}{% endif %}"
+    hour: "{% if item.hour is defined %}{{ item.hour }}{% else %}{{ gmvault_cron_default_hour }}{% endif %}"
+    day: "{% if item.day is defined %}{{ item.day }}{% else %}{{ gmvault_cron_default_day }}{% endif %}"
+    month: "{% if item.month is defined %}{{ item.month }}{% else %}{{ gmvault_cron_default_month }}{% endif %}"
+    weekday: "{% if item.weekday is defined %}{{ item.weekday }}{% else %}{{ gmvault_cron_default_weekday }}{% endif %}"
+    user: "{{ item.user }}"
+    job: "/usr/bin/gmvault 
+        {%if item.type is defined %}-t {{ item.type }}{% endif %}
+        {%if item.db_dir is defined %}-d {{ item.db_dir }}{% endif %}
+        {%if item.oauth2 is defined %}-y {% endif %}
+        {%if item.password is defined %}-p {% endif %}
+        {%if item.imap_req is defined %}-r {{ item.imap_req }}{% endif %}
+        {%if item.gmail_req is defined %}-g {{ item.gmail_req }}{% endif %}
+        {%if item.emails_only is defined %}--emails-only {% endif %}
+        {%if item.chats_only is defined %}--chats-only {% endif %}
+        {%if item.encrypt is defined %}-e {% endif %}
+        {%if item.check_db is defined %}-c {{ item.check_db }} {% endif %}
+        {%if item.multiple_db_owner is defined %}-m {% endif %}
+        {%if item.no_compression is defined %}--no-compression {% endif %}
+        {%if item.server is defined %}--server {{ item.server }}{% endif %}
+        {%if item.port is defined %}--port {{ item.port }}{% endif %}
+        {{ item.address }}"
+  with_items: "{{ gmvault_cron_list }}"

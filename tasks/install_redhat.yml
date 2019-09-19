@@ -1,0 +1,8 @@
+- name: Install pip Ansible module dependencies
+  yum:
+    name: 
+      - python-virtualenv
+      - python-setuptools
+      - python-pip
+    state: present
+

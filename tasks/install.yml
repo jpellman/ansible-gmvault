@@ -1,0 +1,11 @@
+# OS-level installation goes here.
+- import_tasks: install_redhat.yml
+  when: ansible_facts['os_family']|lower == 'redhat'
+- import_tasks: install_debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+# Python-level installation goes here.
+- name: Install gmvault
+  pip:
+    name: gmvault
+    state: present
