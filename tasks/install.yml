@@ -9,3 +9,10 @@
   pip:
     name: gmvault
     state: present
+
+- name: Install expect Ansible module dependencies
+  pip:
+    name: 
+      - pexpect
+    state: present
+

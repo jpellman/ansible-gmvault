@@ -1,7 +1,15 @@
-# TODO Add logic for setting up device password.
-# TODO Add logic for dealing with scenarios where a boolean flag is set to false
-# rather than undefined.
-# TODO Add logic for finding path of gmvault / don't assume path for gmvault.
+- name: Get absolute path for gmvault
+  shell: "which gmvault"
+  register: gmvault_path
+
+- name: Set up device passwords
+  expect:
+    command: "{{ gmvault_path.stdout }} sync --store-password {{ item.address }}"
+    responses:
+      "(?i)press Enter:" : {{ item.password }}
+  with_items: "{{ gmvault_cron_list }}"
+  when: item.password is defined and "{{ gmvault_store_password|default(true) }}"
+  no_log: True
 
 - name: Define gmvault backup crontabs
   cron:
@@ -12,20 +20,20 @@
     month: "{% if item.month is defined %}{{ item.month }}{% else %}{{ gmvault_cron_default_month }}{% endif %}"
     weekday: "{% if item.weekday is defined %}{{ item.weekday }}{% else %}{{ gmvault_cron_default_weekday }}{% endif %}"
     user: "{{ item.user }}"
-    job: "/usr/bin/gmvault 
-        {%if item.type is defined %}-t {{ item.type }}{% endif %}
-        {%if item.db_dir is defined %}-d {{ item.db_dir }}{% endif %}
-        {%if item.oauth2 is defined %}-y {% endif %}
-        {%if item.password is defined %}-p {% endif %}
-        {%if item.imap_req is defined %}-r {{ item.imap_req }}{% endif %}
-        {%if item.gmail_req is defined %}-g {{ item.gmail_req }}{% endif %}
-        {%if item.emails_only is defined %}--emails-only {% endif %}
-        {%if item.chats_only is defined %}--chats-only {% endif %}
-        {%if item.encrypt is defined %}-e {% endif %}
-        {%if item.check_db is defined %}-c {{ item.check_db }} {% endif %}
-        {%if item.multiple_db_owner is defined %}-m {% endif %}
-        {%if item.no_compression is defined %}--no-compression {% endif %}
-        {%if item.server is defined %}--server {{ item.server }}{% endif %}
-        {%if item.port is defined %}--port {{ item.port }}{% endif %}
+    job: "{{ gmvault_path.stdout }} sync
+        {% if item.type is defined %}-t {{ item.type }}{% endif %}
+        {% if item.db_dir is defined %}-d {{ item.db_dir }}{% endif %}
+        {% if item.oauth2 is defined %}{% if item.oauth2 = true %}-y {% endif %}{% endif %}
+        {% if item.password is defined %}-p {% endif %}
+        {% if item.imap_req|default(false) %}-r {{ item.imap_req }}{% endif %}
+        {% if item.gmail_req|default(false) %}-g {{ item.gmail_req }}{% endif %}
+        {% if item.emails_only|default(false) %}--emails-only {% endif %}
+        {% if item.chats_only|default(false) %}--chats-only {% endif %}
+        {% if item.encrypt|default(false) %}-e {% endif %}
+        {% if item.check_db|default(false) %}-c {% endif %}
+        {% if item.multiple_db_owner|default(false) %}-m {% endif %}
+        {% if item.no_compression|default(false) %}--no-compression {% endif %}
+        {% if item.server is defined %}--server {{ item.server }}{% endif %}
+        {% if item.port is defined %}--port {{ item.port }}{% endif %}
         {{ item.address }}"
   with_items: "{{ gmvault_cron_list }}"
